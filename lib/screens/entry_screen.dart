@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class EntryScreen extends StatefulWidget {
+  const EntryScreen({super.key});
+
   @override
   _EntryScreenState createState() => _EntryScreenState();
 }
@@ -25,20 +27,20 @@ class _EntryScreenState extends State<EntryScreen> {
       backgroundColor: moodColors[_selectedMood],
       appBar: AppBar(
         backgroundColor: Colors.teal.shade200,
-        title: Text('New Entry'),
+        title: const Text('New Entry'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'Mood:',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
             ),
             DropdownButton<String>(
               value: _selectedMood,
-              icon: Icon(Icons.arrow_drop_down),
+              icon: const Icon(Icons.arrow_drop_down),
               isExpanded: true,
               items: moodColors.keys.map((mood) {
                 return DropdownMenuItem<String>(
@@ -52,8 +54,8 @@ class _EntryScreenState extends State<EntryScreen> {
                 });
               },
             ),
-            SizedBox(height: 16),
-            Text(
+            const SizedBox(height: 16),
+            const Text(
               'Your Entry:',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
             ),
@@ -70,22 +72,22 @@ class _EntryScreenState extends State<EntryScreen> {
                 ),
               ),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Center(
               child: ElevatedButton.icon(
                 onPressed: () {
                   Navigator.pop(context, {
                     'mood': _selectedMood,
-                    'entry': _entryController.text,
+                    'entry': _entryController.text.trim(),
                   });
                 },
-                icon: Icon(Icons.save),
-                label: Text('Save Entry'),
+                icon: const Icon(Icons.save),
+                label: const Text('Save Entry'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.teal.shade300,
                   padding:
-                  EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-                  textStyle: TextStyle(fontSize: 16),
+                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+                  textStyle: const TextStyle(fontSize: 16),
                 ),
               ),
             )
@@ -95,3 +97,4 @@ class _EntryScreenState extends State<EntryScreen> {
     );
   }
 }
+

@@ -1,8 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'entry_screen.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:firebase_auth/firebase_auth.dart';
+
+/// Email sign-in helper
+Future<UserCredential?> signInWithEmail(String email, String password) async {
+  try {
+    final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+    return credential;
+  } on FirebaseAuthException catch (e) {
+    if (e.code == 'user-not-found') {
+      print('No user found for that email.');
+    } else if (e.code == 'wrong-password') {
+      print('Wrong password provided for that user.');
+    }
+    return null;
+  }
+}
 
 class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
@@ -10,10 +33,69 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
-  Map<DateTime, Map<String, String>> _journalEntries = {}; // date → mood + entry
+  final Map<DateTime, Map<String, String>> _journalEntries = {};
+
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  bool _isLoggedIn = false;
 
   @override
   Widget build(BuildContext context) {
+    return _isLoggedIn ? _buildJournalUI() : _buildLoginUI();
+  }
+
+  Widget _buildLoginUI() {
+    return Scaffold(
+      appBar: AppBar(title: Text('Daily Journal - Login')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Center(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                Text(
+                  'Login to your account',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 20),
+                TextField(
+                  controller: _emailController,
+                  decoration: InputDecoration(labelText: 'Email'),
+                ),
+                TextField(
+                  controller: _passwordController,
+                  obscureText: true,
+                  decoration: InputDecoration(labelText: 'Password'),
+                ),
+                SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () async {
+                    final email = _emailController.text.trim();
+                    final password = _passwordController.text.trim();
+
+                    final userCredential =
+                    await signInWithEmail(email, password);
+
+                    if (userCredential != null) {
+                      setState(() => _isLoggedIn = true);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Login failed')),
+                      );
+                    }
+                  },
+                  child: Text('Login'),
+                )
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildJournalUI() {
     return Scaffold(
       backgroundColor: Color(0xFFFFFBF0),
       appBar: PreferredSize(
@@ -85,6 +167,16 @@ class _HomeScreenState extends State<HomeScreen> {
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 16, color: Colors.grey.shade700),
           ),
+          SizedBox(height: 20),
+          ElevatedButton.icon(
+            onPressed: _fetchMessage,
+            icon: Icon(Icons.cloud_download),
+            label: Text('Fetch Note from Server'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.teal.shade300,
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -136,5 +228,17 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _fetchMessage() async {
+    if (_selectedDay == null || !_journalEntries.containsKey(_selectedDay)) {
+      _showEntryDialog(context, 'No Entry', 'No note saved for selected date.');
+      return;
+    }
+
+    final mood = _journalEntries[_selectedDay]!['mood']!;
+    final entry = _journalEntries[_selectedDay]!['entry']!;
+
+    _showEntryDialog(context, 'Fetched Entry', 'Mood: $mood\n\n$entry');
   }
 }

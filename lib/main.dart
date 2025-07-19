@@ -1,17 +1,24 @@
 import 'package:flutter/material.dart';
 import 'screens/home_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
 
-void main() {
-  runApp(DailyJournalApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(const MyApp());
 }
 
-class DailyJournalApp extends StatelessWidget {
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Daily Journal',
-      theme: ThemeData(primarySwatch: Colors.teal),
-      home: HomeScreen(),
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: const HomeScreen(),
     );
   }
 }
